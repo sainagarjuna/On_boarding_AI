@@ -16,7 +16,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # Load API key
 load_dotenv()
-CHATGROQ_API_KEY = os.getenv("CHATGROQ_API_KEY5")
+CHATGROQ_API_KEY = os.getenv("groq_api_key")
 
 # Load PDF using pdfplumber for better structure (table-aware)
 def load_pdf_text(path):
@@ -89,9 +89,8 @@ chat_histories = {}
 def get_chat_history(session_id: str) -> ChatMessageHistory:
     if session_id not in chat_histories:
         chat_histories[session_id] = ChatMessageHistory()
-    history = chat_histories[session_id]
-    history.messages = history.messages[-7:]
-    return history
+    chat_histories[session_id].messages = chat_histories[session_id].messages[-7:]
+    return chat_histories[session_id]
 
 # Wrap with memory
 rag_with_history = RunnableWithMessageHistory(
@@ -101,14 +100,21 @@ rag_with_history = RunnableWithMessageHistory(
     history_messages_key="chat_history"
 )
 
-# Main chat loop
-print("🔹 HR Assistant Chatbot 🔹")
-while True:
-    question = input("You: ")
-    if question.lower() in {"exit", "quit"}:
-        break
-    result = rag_with_history.invoke(
-        {"question": question},
-        config=RunnableConfig(configurable={"session_id": "user1"})
+def answer_question(question, session_id="user1"):
+    result=rag_with_history.invoke(
+        {"question":question},
+        config=RunnableConfig(configurable={"session_id":session_id})
     )
-    print(f"Bot: {result}\n")
+    return result
+
+# Main chat loop
+# print("🔹 HR Assistant Chatbot 🔹")
+# while True:
+#     question = input("You: ")
+#     if question.lower() in {"exit", "quit"}:
+#         break
+#     result = rag_with_history.invoke(
+#         {"question": question},
+#         config=RunnableConfig(configurable={"session_id": "user1"})
+#     )
+#     print(f"Bot: {result}\n")
